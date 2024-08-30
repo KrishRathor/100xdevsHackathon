@@ -103,6 +103,7 @@ model Pr {
   updatedAt DateTime @updatedAt
   bountyId  String
   solverId  String
+  number    String
 }
 
 model Solver {

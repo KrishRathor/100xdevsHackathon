@@ -1,7 +1,7 @@
 import { error } from "console";
 import { get } from "http";
 import { Octokit } from "octokit";
-import { string, z } from "zod";
+import { number, string, z } from "zod";
 import { prisma } from "../../db";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
@@ -15,8 +15,6 @@ export const githubRouter = createTRPCRouter({
     }))
     .mutation(async opts => {
       try {
-
-        console.log('here................');
 
         const { repo, ownerId, issue, amount } = opts.input;
 
@@ -52,7 +50,24 @@ export const githubRouter = createTRPCRouter({
           owner: owner,
           repo: repo,
           issue_number: issue,
-          body: `This is autmoated comment by -- tool.  This is a bounty for ${amount}. Add 'claim #-${createBounty.id}' in your pull request message to claim bounty`,
+          body: `
+            🚀 Bounty Alert! 🚀
+
+Thank you for opening this issue! We are excited to offer a bounty for resolving it.
+
+If you're interested in claiming this bounty, please make sure to:
+
+1) Register on our platform: Head over to localhost:3000/register and create an account.
+2) Claim the bounty: Comment on this issue with claim #${createBounty.id} to let us know you're ready to tackle this challenge. Make sure to claim the bounty before you start working on it to ensure you are eligible for the reward! 
+
+💡 Additional Information:
+
+We encourage collaboration, but only the first person to claim the bounty and successfully close the issue will receive the reward.
+For any questions or more details about the bounty process, feel free to reach out on our platform.
+Happy coding! 🎉
+
+Note: Please ensure to follow the repository guidelines and communicate any progress or roadblocks in this thread.
+          `,
           headers: {
             'X-GitHub-Api-Version': '2022-11-28'
           }
@@ -299,11 +314,49 @@ export const githubRouter = createTRPCRouter({
 
       try {
 
+        const { repo, issue } = opts.input;
+
+        const getBounty = await opts.ctx.prisma.bounty.findFirst({
+          where: {
+            repo,
+            issueNumber: issue
+          }
+        })
+
+        if (!getBounty) return;
+
+        const getPr = await opts.ctx.prisma.pr.findMany({
+          where: {
+            bountyId: getBounty.id
+          }
+        })
+
+        if (!getPr) return;
+
+        const results = await Promise.all(
+          getPr.map(async p => {
+            const solver = await opts.ctx.prisma.solver.findFirst({ where: { id: p.solverId } });
+            const prNumber = p.number;
+
+            if (!solver) return null;
+
+            return {
+              solver,
+              prNumber
+            };
+          })
+        );
+        return {
+          code: 200,
+          message: 'pr found',
+          body: results.filter(a => a != null)
+        }
+
       } catch (erorr) {
         console.log(error);
       } finally {
         await prisma.$disconnect();
-      } 1
+      }
 
     })
 })

@@ -10,6 +10,7 @@ import {
 import { clusterApiUrl } from '@solana/web3.js';
 import { useEffect, useMemo, useState } from 'react';
 import { SolanaWalletProvider } from '../components/SolanaWalletProvider';
+import { Header } from '../components/Header';
 
 require('@solana/wallet-adapter-react-ui/styles.css');
 
@@ -51,6 +52,7 @@ const Register: React.FC = () => {
 
   return (
     <div className='bg-[#0D1117] h-[100vh] m-0 p-0 text-white ' >
+      <Header />
       <p className='text-2xl text-center p-4' >Register With Your Github Username and wallet</p>
       <WalletModalProvider>
         <div className='mx-auto w-fit my-4' ><WalletMultiButton /> </div>
