@@ -1,28 +1,20 @@
-import { type AppType } from "next/app";
-import { type Session } from "next-auth";
-import { SessionProvider } from "next-auth/react";
-
-import { api } from "../utils/api";
-
-import "../styles/globals.css";
-import { RecoilRoot } from "recoil";
-
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 import { ConnectionProvider, WalletProvider, useWallet } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { UnsafeBurnerWalletAdapter } from '@solana/wallet-adapter-wallets';
+import {
+  WalletModalProvider,
+  WalletDisconnectButton,
+  WalletMultiButton
+} from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
 import { useEffect, useMemo, useState } from 'react';
+import { SolanaWalletProvider } from '../components/SolanaWalletProvider';
 
 require('@solana/wallet-adapter-react-ui/styles.css');
 
-const MyApp: AppType<{ session: Session | null }> = ({
-  Component,
-  pageProps: { session, ...pageProps },
-}) => {
-
+const Register: React.FC = () => {
+  // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
   const network = WalletAdapterNetwork.Devnet;
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
@@ -56,19 +48,19 @@ const MyApp: AppType<{ session: Session | null }> = ({
     return null; // or a loading state if preferred
   }
 
+
   return (
-    <RecoilRoot>
-      <ConnectionProvider endpoint={endpoint} >
-        <WalletProvider wallets={wallets} autoConnect>
-          <SessionProvider session={session}>
-            <Component {...pageProps} />
-            <ToastContainer />
-          </SessionProvider>
-        </WalletProvider>
-      </ConnectionProvider>
+    <div className='bg-[#0D1117] h-[100vh] m-0 p-0 text-white ' >
+      <p className='text-2xl text-center p-4' >Register With Your Github Username and wallet</p>
+      <WalletModalProvider>
+        <div className='mx-auto w-fit my-4' ><WalletMultiButton /> </div>
+        <div className='mx-auto w-fit my-4' ><WalletDisconnectButton /> </div>
+        { /* Your app's components go here, nested within the context providers. */}
+        <SolanaWalletProvider />
+      </WalletModalProvider>
+    </div>
+  )
+}
 
-    </RecoilRoot>
-  );
-};
+export default Register;
 
-export default api.withTRPC(MyApp);
